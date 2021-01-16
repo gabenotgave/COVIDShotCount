@@ -19,8 +19,6 @@ namespace COVIDVaccinationCount
 
         public DateTime GetDate(string location) => cdcData.GetLocationData(location).Date;
 
-        public int GetMMWRWeek(string location) => cdcData.GetLocationData(location).MMWR_week;
-
         public string GetShortName(string location) => cdcData.GetLocationData(location).ShortName;
 
         public string GetLongName(string location) => cdcData.GetLocationData(location).LongName;
@@ -28,6 +26,10 @@ namespace COVIDVaccinationCount
         public int GetDosesDistributed(string location) => cdcData.GetLocationData(location).Doses_Distributed;
 
         public int GetDosesAdministered(string location) => cdcData.GetLocationData(location).Doses_Administered;
+
+        public int Get1stDosesAdministered(string location) => cdcData.GetLocationData(location).Administered_Dose1;
+
+        public int Get2ndDosesAdministered(string location) => cdcData.GetLocationData(location).Administered_Dose2;
 
         public int GetDistPer100K(string location) => cdcData.GetLocationData(location).Dist_Per_100K;
 

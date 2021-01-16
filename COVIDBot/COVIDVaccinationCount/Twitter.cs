@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Tweetinvi;
+using Tweetinvi.Parameters;
 
 namespace COVIDVaccinationCount
 {
@@ -14,16 +15,39 @@ namespace COVIDVaccinationCount
             this.twitterClient = new TwitterClient(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_KEY, ACCESS_SECRET);
         }
 
-        public async Task Tweet(string text)
+        public async Task<long> Tweet(string text)
         {
-            await twitterClient.Tweets.PublishTweetAsync(text);
+            var tweet = await twitterClient.Tweets.PublishTweetAsync(text);
+            return tweet.Id;
         }
 
-        public static string GenerateCovidTweet(int count)
+        public async Task Reply(string text, long tweetId)
         {
-            return @$"{count.IntToStrWithComma()} COVID-19 vaccinations have now been administered in the U.S.
+            // Retrieving tweet through provided tweet id
+            var tweetToReplyTo = await twitterClient.Tweets.GetTweetAsync(tweetId);
 
-{Math.Round((count / 328200000.0) * 100, 2).ToString()}% of the U.S. population now has immunity.";
+            // Publishing reply
+            await twitterClient.Tweets.PublishTweetAsync(new PublishTweetParameters(text)
+            {
+                InReplyToTweet = tweetToReplyTo
+            });
+        }
+
+        public static string GenerateImmunityTweet(double percentage)
+        {
+            return @$"@COVIDShotCount {percentage.ToString()}% of the U.S. population now has immunity.
+
+We project herd immunity to be attained on {Calculations.ProjectHerdImmunity(percentage).ToString("M/d/yyyy")}.";
+        }
+
+        public static string GenerateCovidTweet(int firstDoses, int secondDoses)
+        {
+            return @$"U.S. COVID-19 VACCINATIONS:
+
+{firstDoses.IntToStrWithComma()} 1st doses administered
+{secondDoses.IntToStrWithComma()} 2nd doses administered
+
+(CDC, {DateTime.Now.ToString("M/d/yyyy")})";
         }
     }
 }

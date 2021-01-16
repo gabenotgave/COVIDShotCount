@@ -5,6 +5,7 @@
 
 # ignore a single file
 App.config
+Calculations.cs
 
 # User-specific files
 *.rsuser

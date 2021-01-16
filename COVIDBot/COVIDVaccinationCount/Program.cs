@@ -19,17 +19,20 @@ namespace COVIDVaccinationCount
     {
         static async Task Main(string[] args)
         {
+            var deleteme = Calculations.CalculateImmunity(328200000, 10595866, 1610524);
+
             CDC cdc = new CDC();
-            int cdcDosesCount = cdc.GetDosesAdministered("US");
+            int cdcFirstDoses = cdc.Get1stDosesAdministered("US");
+            int cdcSecondDoses = cdc.Get2ndDosesAdministered("US");
             //Bloomberg bloomberg = new Bloomberg();
             //int bloombergDosesCount = bloomberg.GetDosesAdministered();
 
-            File file = new File("/home/pi/Desktop/CovidBot/count.txt");
-            int storedDosesCount = file.ReadLines().First().StrToInt();
+            File file = new File("/home/pi/Desktop/CovidBot/firstDoses.txt");
+            int storedFirstDoses = file.ReadLines().First().StrToInt();
 
-            if (cdcDosesCount != storedDosesCount)
+            if (cdcFirstDoses != storedFirstDoses)
             {
-                var generatedTweet = Twitter.GenerateCovidTweet(cdcDosesCount);
+                var generatedTweet = Twitter.GenerateCovidTweet(cdcFirstDoses, cdcSecondDoses);
 
                 Twitter twitter = new Twitter(
                     Credentials.GetValue("Twitter_Consumer_Key"),
@@ -38,9 +41,10 @@ namespace COVIDVaccinationCount
                     Credentials.GetValue("Twitter_Access_Secret")
                 );
 
-                await twitter.Tweet(generatedTweet);
+                long tweetId = await twitter.Tweet(generatedTweet);
+                await twitter.Reply(Twitter.GenerateImmunityTweet(Calculations.CalculateImmunity(328200000, cdcFirstDoses, cdcSecondDoses)), tweetId);
 
-                file.Update(cdcDosesCount.ToString());
+                file.Update(cdcFirstDoses.ToString());
             }
         }
     }
