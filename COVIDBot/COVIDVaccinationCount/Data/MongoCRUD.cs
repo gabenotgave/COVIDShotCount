@@ -1,5 +1,6 @@
 ﻿using COVIDVaccinationCount.Data.Models;
 using MongoDB.Driver;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace COVIDVaccinationCount.Data
@@ -18,10 +19,16 @@ namespace COVIDVaccinationCount.Data
             collection.InsertOne(record);
         }
 
-        public int GetLatestVaccinationCount()
+        public List<T> LoadAllRecords<T>(string table)
+        {
+            var collection = db.GetCollection<T>(table);
+            return collection.AsQueryable().ToList();
+        }
+
+        public VaccinationRecord GetLatestVaccinationRecord()
         {
             var collection = db.GetCollection<VaccinationRecord>("Vaccinations");
-            return collection.AsQueryable().OrderByDescending(x => x.DateTimeAdded).FirstOrDefault().FirstDosesAdministered;
+            return collection.AsQueryable().OrderByDescending(x => x.DateTimeAdded).FirstOrDefault();
         }
     }
 }
