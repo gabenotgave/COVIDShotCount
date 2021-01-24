@@ -49,7 +49,14 @@ namespace COVIDVaccinationCount
 
         public static string GenerateVaccinationChartTweet(DateTime asOfDate)
         {
-            return $"Progress of COVID-19 vaccinations (as of {asOfDate.ToString("d")}):";
+            return $"Progress of COVID-19 vaccinations in the U.S. (as of {asOfDate.ToString("d")}):";
+        }
+
+        public static string GenerateImmunityChartTweet(DateTime asOfDate, double percentage)
+        {
+            return $"As of {asOfDate.ToString("d")}, {percentage.ToString()}% of the U.S. population has immunity. " +
+                $"If the United States maintains this pace, herd immunity (70% of the population) will be attained on " +
+                $"{Calculations.ProjectHerdImmunity(percentage).ToString("M/d/yyyy")}.";
         }
 
         public static string GenerateImmunityTweet(double percentage)

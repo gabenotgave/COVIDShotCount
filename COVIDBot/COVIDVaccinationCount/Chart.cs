@@ -7,9 +7,10 @@ namespace COVIDVaccinationCount
 {
     static class Chart
     {
-        public static byte[] GenerateOneBarGraph(
+        public static byte[] GenerateOneDatapointGraph(
+            string chartType,
             List<DateTime> dateTimes,
-            List<int> data,
+            List<object> data,
             string barTitle
             )
         {
@@ -26,31 +27,42 @@ namespace COVIDVaccinationCount
             qc.BackgroundColor = "white";
             // Creating GET request URL
             qc.Config = @"{
-                type: 'bar',
+                type: '" + chartType + @"',
                 data: {
                     labels: [" + _dateTimes + @"],
                     datasets: [{
                     label: '" + barTitle + @"',
                     data: [" + _data + @"]
                     }]
+                },
+                options: {
+                    layout: {
+                      padding: {
+                        left: 20,
+                        right: 20,
+                        top: 20,
+                        bottom: 20
+                        }
+                    }
                 }
             }";
 
             // Retrieving URL from QuickChart method
             var url = qc.GetUrl();
 
-            // Getting photo from web (bytes)
+            // Getting photo bytes from web
             using var imgClient = new WebClient();
             var chartImageBytes = imgClient.DownloadData(url);
 
             return chartImageBytes;
         }
 
-        public static byte[] GenerateTwoBarGraph(
+        public static byte[] GenerateTwoDatapointGraph(
+            string chartType,
             List<DateTime> dateTimes,
-            List<int> dataOne,
+            List<object> dataOne,
             string barTitleOne,
-            List<int> dataTwo,
+            List<object> dataTwo,
             string barTitleTwo
             )
         {
@@ -68,7 +80,7 @@ namespace COVIDVaccinationCount
             qc.BackgroundColor = "white";
             // Creating GET request URL
             qc.Config = @"{
-                type: 'bar',
+                type: '" + chartType + @"',
                 data: {
                     labels: [" + _dateTimes + @"],
                     datasets: [{
@@ -78,13 +90,23 @@ namespace COVIDVaccinationCount
                     label: '" + barTitleTwo + @"',
                     data: [" + _dataTwo + @"]
                     }]
+                },
+                options: {
+                    layout: {
+                      padding: {
+                        left: 20,
+                        right: 20,
+                        top: 20,
+                        bottom: 20
+                        }
+                    }
                 }
             }";
 
             // Retrieving URL from QuickChart method
             var url = qc.GetUrl();
 
-            // Getting photo from web (bytes)
+            // Getting photo bytes from web
             using var imgClient = new WebClient();
             var chartImageBytes = imgClient.DownloadData(url);
 

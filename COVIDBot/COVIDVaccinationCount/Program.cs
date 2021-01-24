@@ -37,9 +37,9 @@ namespace COVIDVaccinationCount
                     Credentials.GetValue("Twitter_Access_Key"),
                     Credentials.GetValue("Twitter_Access_Secret")
                 );
-                // Posting tweet and replying to said tweet
+                // Posting tweet
                 long tweetId = await twitter.Tweet(generatedTweet);
-                await twitter.Reply(Twitter.GenerateImmunityTweet(Calculations.CalculateImmunity(cdcUSPopulation, cdcFirstDoses, cdcSecondDoses)), tweetId);
+                //await twitter.Reply(Twitter.GenerateImmunityTweet(Calculations.CalculateImmunity(cdcUSPopulation, cdcFirstDoses, cdcSecondDoses)), tweetId);
 
                 // Inserting new data into database
                 db.InsertRecord("Vaccinations", new VaccinationRecord
@@ -51,19 +51,23 @@ namespace COVIDVaccinationCount
                 });
             }
 
+
+            // ROUTINES
+
             // Checking if it is 1 P.M. on Saturday
             if (DateTime.Now.DayOfWeek == DayOfWeek.Saturday && DateTime.Now.ToString("t") == "1:00 PM")
             {
                 // Querying database for all vaccination records
-                var _vaccinationRecords = db.LoadAllRecords<VaccinationRecord>("Vaccinations").OrderBy(x => x.DateTimeAdded);
+                var vaccinationRecords = db.LoadAllRecords<VaccinationRecord>("Vaccinations").OrderBy(x => x.DateTimeAdded);
 
-                // Generating graph and assigning its bytes to variable
-                var chartImageBytes = Chart.GenerateTwoBarGraph(
-                    dateTimes: _vaccinationRecords.Select(x => x.DateTimeAdded).ToList(),
-                    dataOne: _vaccinationRecords.Select(x => x.FirstDosesAdministered).ToList(),
-                    barTitleOne: "First Doses Administered",
-                    dataTwo: _vaccinationRecords.Select(x => x.SecondDosesAdministered).ToList(),
-                    barTitleTwo: "Second Doses Administered"
+                // Generating graph and assigning its image bytes to variable
+                var chartImageBytes = Chart.GenerateTwoDatapointGraph(
+                    chartType: "bar",
+                    dateTimes: vaccinationRecords.Select(x => x.DateTimeAdded).ToList(),
+                    dataOne: vaccinationRecords.Select(x => x.FirstDosesAdministered).Cast<object>().ToList(),
+                    barTitleOne: "1st Doses Administered",
+                    dataTwo: vaccinationRecords.Select(x => x.SecondDosesAdministered).Cast<object>().ToList(),
+                    barTitleTwo: "2nd Doses Administered"
                 );
 
                 // Instantiating Twitter class
@@ -75,6 +79,32 @@ namespace COVIDVaccinationCount
                 );
                 // Tweeting chart with generated text
                 var generatedTweet = Twitter.GenerateVaccinationChartTweet(latestDbVaccinationRecord.DateTimeAdded);
+                await twitter.TweetWithImage(generatedTweet, chartImageBytes);
+            }
+
+            // Checking if it is 1 P.M. on Sunday
+            if (DateTime.Now.DayOfWeek == DayOfWeek.Sunday && DateTime.Now.ToString("t") == "1:00 PM")
+            {
+                // Querying database for all vaccination records
+                var vaccinationRecords = db.LoadAllRecords<VaccinationRecord>("Vaccinations").OrderBy(x => x.DateTimeAdded);
+
+                // Generating graph and assigning its image bytes to variable
+                var chartImageBytes = Chart.GenerateOneDatapointGraph(
+                    chartType: "line",
+                    dateTimes: vaccinationRecords.Select(x => x.DateTimeAdded).ToList(),
+                    data: vaccinationRecords.Select(x => Calculations.CalculateImmunity(cdcUSPopulation, x.FirstDosesAdministered, x.SecondDosesAdministered)).Cast<object>().ToList(),
+                    barTitle: "Immunity (% of U.S. population)"
+                );
+
+                // Instantiating Twitter class
+                Twitter twitter = new Twitter(
+                    Credentials.GetValue("Twitter_Consumer_Key"),
+                    Credentials.GetValue("Twitter_Consumer_Secret"),
+                    Credentials.GetValue("Twitter_Access_Key"),
+                    Credentials.GetValue("Twitter_Access_Secret")
+                );
+                // Tweeting chart with generated text
+                var generatedTweet = Twitter.GenerateImmunityChartTweet(latestDbVaccinationRecord.DateTimeAdded, Calculations.CalculateImmunity(cdcUSPopulation, cdcFirstDoses, cdcSecondDoses));
                 await twitter.TweetWithImage(generatedTweet, chartImageBytes);
             }
         }
