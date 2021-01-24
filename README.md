@@ -15,7 +15,7 @@ In addition to the aggregation of the CDC's website, the Application has multipl
 # Aspirations
 Although I've accomplished the main component of this project, there are a few things yet in store:
 
-- Developing a publically-accessible and intuitive website that will publicize exclusive vaccination data (that this Application aggregates) in a variety of different forms
+- Develop a publically-accessible and intuitive website that will publicize exclusive vaccination data (that this Application aggregates) in a variety of different forms
 - Expand automated publishing to Facebook and Instagram
 - Further contribute to the data available to researchers
 
