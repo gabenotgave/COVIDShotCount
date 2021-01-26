@@ -6,6 +6,7 @@ The Application executes on a thirty-minute interval. If a change is detected in
 
 - Post on Twitter the number of first doses and second doses administered
 - Store the data (first doses administered, second doses administered, and doses distributed) into a database
+- Post on Twitter (after a fifteen minute sleep) if the fraction of "1 in <however many people> received a vaccination" changed
 
 In addition to the aggregation of the CDC's website, the Application has multiple routines that are executed on specific days. These routines are comprised of:
 

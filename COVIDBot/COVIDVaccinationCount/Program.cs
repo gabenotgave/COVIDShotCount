@@ -2,6 +2,7 @@
 using COVIDVaccinationCount.Data.Models;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 
@@ -11,6 +12,9 @@ namespace COVIDVaccinationCount
     {
         static async Task Main(string[] args)
         {
+            // Assigning execution date/time to variable in case processes before routine checks exceed total of a minute
+            var executionTime = DateTime.Now;
+
             // Instantiating MongoDB class
             MongoCRUD db = new MongoCRUD("COVIDShotCount");
             // Querying most recently stored vaccination data
@@ -49,13 +53,34 @@ namespace COVIDVaccinationCount
                     DosesDistributed = cdcDosesDistributed,
                     DateTimeAdded = DateTime.Now
                 });
+
+
+                // OTHER CHECKS
+
+                // Calculating 1 in how many people received a vaccination
+                // If the result of the calculation is the same as that of the last CDC data update (stored in db), the method will return zero
+                int oneInHowManyPeople = Calculations.OneInHowManyPeopleReceivedVaccination(
+                    latestDbVaccinationRecord.FirstDosesAdministered,
+                    cdcFirstDoses,
+                    cdcUSPopulation);
+
+                // Checking if there is a new result (if greater than zero, there is)
+                if (oneInHowManyPeople > 0)
+                {
+                    // Sleeping for fifteen minutes to give time between tweets
+                    Thread.Sleep(1000 * 60 * 15);
+
+                    // Generating and posting tweet
+                    var generatedFractionTweet = Twitter.GenerateFractionTweet(oneInHowManyPeople);
+                    await twitter.Tweet(generatedFractionTweet);
+                }
             }
 
 
             // ROUTINES
 
-            // Checking if it is 1 P.M. on Saturday
-            if (DateTime.Now.DayOfWeek == DayOfWeek.Saturday && DateTime.Now.ToString("t") == "1:00 PM")
+            // Checking if current execution started at 1 P.M. on Saturday
+            if (executionTime.DayOfWeek == DayOfWeek.Saturday && executionTime.ToString("t") == "1:00 PM")
             {
                 // Querying database for all vaccination records
                 var vaccinationRecords = db.LoadAllRecords<VaccinationRecord>("Vaccinations").OrderBy(x => x.DateTimeAdded);
@@ -82,8 +107,8 @@ namespace COVIDVaccinationCount
                 await twitter.TweetWithImage(generatedTweet, chartImageBytes);
             }
 
-            // Checking if it is 1 P.M. on Sunday
-            if (DateTime.Now.DayOfWeek == DayOfWeek.Sunday && DateTime.Now.ToString("t") == "1:00 PM")
+            // Checking if current execution started at 1 P.M. on Sunday
+            if (executionTime.DayOfWeek == DayOfWeek.Sunday && executionTime.ToString("t") == "1:00 PM")
             {
                 // Querying database for all vaccination records
                 var vaccinationRecords = db.LoadAllRecords<VaccinationRecord>("Vaccinations").OrderBy(x => x.DateTimeAdded);

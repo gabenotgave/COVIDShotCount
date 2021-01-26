@@ -59,6 +59,11 @@ namespace COVIDVaccinationCount
                 $"{Calculations.ProjectHerdImmunity(percentage).ToString("M/d/yyyy")}.";
         }
 
+        public static string GenerateFractionTweet(int fraction)
+        {
+            return $"1 in {fraction} people have now received a COVID-19 vaccination in the United States.";
+        }
+
         public static string GenerateImmunityTweet(double percentage)
         {
             return @$"@COVIDShotCount {percentage.ToString()}% of the U.S. population now has immunity.
