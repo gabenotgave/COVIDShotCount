@@ -6,7 +6,7 @@ The Application executes on a thirty-minute interval. If a change is detected in
 
 - Post on Twitter the number of first doses and second doses administered
 - Store the data (first doses administered, second doses administered, and doses distributed) into a database
-- Post on Twitter (after a fifteen minute sleep) if the fraction of "1 in <however many people> received a vaccination" changed
+- Post on Twitter (after a fifteen minute sleep) if the fraction of "1 in however many people received a vaccination" changed
 
 In addition to the aggregation of the CDC's website, the Application has multiple routines that are executed on specific days. These routines are comprised of:
 
@@ -18,7 +18,7 @@ Although I've accomplished the main component of this project, there are a few t
 
 - Develop a publically-accessible and intuitive website that will publicize exclusive vaccination data (that this Application aggregates) in a variety of different forms
 - Expand automated publishing to Facebook and Instagram
-- Further contribute to the data available to researchers
+- Further contribute to the abundence of public data available to researchers
 
 # Technologies
 This project could not have been completed without the work of the many others who have contributed to the technologies the Application utilizes, including:
