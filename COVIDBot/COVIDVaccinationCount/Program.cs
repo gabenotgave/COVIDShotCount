@@ -54,6 +54,9 @@ namespace COVIDVaccinationCount
                     DateTimeAdded = DateTime.Now
                 });
 
+                // Making POST request to website (COVIDShotCount.org) to clear cache
+                await Website.ClearCache("vaccinations-cg");
+
 
                 // OTHER CHECKS
 
