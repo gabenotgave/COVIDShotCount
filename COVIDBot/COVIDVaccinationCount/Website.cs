@@ -22,7 +22,7 @@ namespace COVIDVaccinationCount
 
                 var encodedContent = new FormUrlEncodedContent(parameters);
 
-                var result = await httpClient.PostAsync("https://covidshotcount.org/clear-cache", encodedContent);
+                var result = await httpClient.PostAsync("http://covidshotcount.org/clear-cache", encodedContent);
                 //var result = await httpClient.PostAsync("http://192.168.4.58:5000/clear-cache", encodedContent);
 
                 var status = await result.Content.ReadAsStringAsync();
