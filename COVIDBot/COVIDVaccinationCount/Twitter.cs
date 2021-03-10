@@ -71,12 +71,14 @@ namespace COVIDVaccinationCount
 We project herd immunity (70%) to be attained on {Calculations.ProjectHerdImmunity(percentage).ToString("M/d/yyyy")}.";
         }
 
-        public static string GenerateCovidTweet(int firstDoses, int secondDoses)
+        public static string GenerateCovidTweet(int distributed, int firstDoses, int secondDoses, int increase)
         {
             return @$"U.S. COVID-19 VACCINATIONS:
 
+{distributed.IntToStrWithComma()} doses distributed
 {firstDoses.IntToStrWithComma()} 1st doses administered
 {secondDoses.IntToStrWithComma()} 2nd doses administered
++{increase.IntToStrWithComma()} since previous update
 
 (CDC, {DateTime.Now.ToString("M/d/yyyy")})";
         }

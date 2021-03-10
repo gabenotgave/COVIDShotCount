@@ -29,10 +29,13 @@ namespace COVIDVaccinationCount
             int cdcUSPopulation = cdc.Get2019Census("US");
 
             // Checking if CDC has updated vaccination data by comparing their first doses to first doses stored in database
-            if (cdcFirstDoses != latestDbVaccinationRecord.FirstDosesAdministered)
+            if (cdcFirstDoses > latestDbVaccinationRecord.FirstDosesAdministered)
             {
+                // Calculating increase of total vaccinations since previous data record
+                var increase = (cdcFirstDoses + cdcSecondDoses) - (latestDbVaccinationRecord.FirstDosesAdministered + latestDbVaccinationRecord.SecondDosesAdministered);
+
                 // Generating COVID vaccination tweet to post
-                var generatedTweet = Twitter.GenerateCovidTweet(cdcFirstDoses, cdcSecondDoses);
+                var generatedTweet = Twitter.GenerateCovidTweet(cdcDosesDistributed, cdcFirstDoses, cdcSecondDoses, increase);
 
                 // Instantiating Twitter class
                 Twitter twitter = new Twitter(
