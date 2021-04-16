@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-
 namespace COVIDVaccinationCount
 {
     class Program
@@ -23,19 +22,17 @@ namespace COVIDVaccinationCount
             // Instantiating CDC class (instantiation scrapes CDC website)
             CDC cdc = new CDC();
             // Getting necessary CDC data-points
-            int cdcFirstDoses = cdc.Get1stDosesAdministered("US");
-            int cdcSecondDoses = cdc.Get2ndDosesAdministered("US");
+            int cdcFirstDoses = cdc.Get1stDosesAdministered("US"); // First doses does not include Janssen
+            int cdcFullyVaccinated = cdc.GetFullyVaccinated("US");
             int cdcDosesDistributed = cdc.GetDosesDistributed("US");
             int cdcUSPopulation = cdc.Get2019Census("US");
+            int cdcFullyVaccinatedMinors = cdc.GetFullyVaccinatedMinors("US"); // Fully vaccinated total - fully vaccinated adults
 
             // Checking if CDC has updated vaccination data by comparing their first doses to first doses stored in database
             if (cdcFirstDoses > latestDbVaccinationRecord.FirstDosesAdministered)
             {
                 // Calculating increase of total vaccinations since previous data record
-                var increase = (cdcFirstDoses + cdcSecondDoses) - (latestDbVaccinationRecord.FirstDosesAdministered + latestDbVaccinationRecord.SecondDosesAdministered);
-
-                // Generating COVID vaccination tweet to post
-                var generatedTweet = Twitter.GenerateCovidTweet(cdcDosesDistributed, cdcFirstDoses, cdcSecondDoses, increase);
+                int increase = (cdcFirstDoses + cdcFullyVaccinated) - (latestDbVaccinationRecord.FirstDosesAdministered + latestDbVaccinationRecord.SecondDosesAdministered);
 
                 // Instantiating Twitter class
                 Twitter twitter = new Twitter(
@@ -44,16 +41,36 @@ namespace COVIDVaccinationCount
                     Credentials.GetValue("Twitter_Access_Key"),
                     Credentials.GetValue("Twitter_Access_Secret")
                 );
+
                 // Posting tweet
-                long tweetId = await twitter.Tweet(generatedTweet);
-                //await twitter.Reply(Twitter.GenerateImmunityTweet(Calculations.CalculateImmunity(cdcUSPopulation, cdcFirstDoses, cdcSecondDoses)), tweetId);
+                long tweetId = await twitter.Tweet(Twitter.GenerateCovidTweet(cdcDosesDistributed, cdcFirstDoses, cdcFullyVaccinated, increase));
+
+                // Instantiating Owid class (instantiation scrapes Owid GitHub)
+                Owid owid = new Owid();
+                int owidPeopleVaccinated = owid.GetVaccinatedPeople("World");
+                int owidPeopleFullyVaccinated = owid.GetFullyVaccinatedPeople("World");
+                int owidTotalVaccinations = owid.GetTotalVaccinations("World");
+                int globalIncrease = owidTotalVaccinations - latestDbVaccinationRecord.GlobalDosesAdministered; // Calculating increase of global vaccinations since previous data record
+
+                // Replying global vaccine administrations tweet
+                await twitter.Reply(Twitter.GenerateWorldTweet(owidPeopleVaccinated, owidPeopleFullyVaccinated, globalIncrease), tweetId);
+
+                // Getting vaccine data by manufacturer to use in reply
+                //int cdcPfizerDoses = cdc.GetPfizerDosesAdministered("US");
+                //int cdcModernaDoses = cdc.GetModernaDosesAdministered("US");
+                //int cdcJanssenDoses = cdc.GetJanssenDosesAdministered("US");
+
+                // Replying vaccine administration tweet by manufacturer
+                //await twitter.Reply(Twitter.GenerateAdministrationByManufacturerTweet(cdcPfizerDoses, cdcModernaDoses, cdcJanssenDoses), tweetId);
 
                 // Inserting new data into database
                 db.InsertRecord("Vaccinations", new VaccinationRecord
                 {
                     FirstDosesAdministered = cdcFirstDoses,
-                    SecondDosesAdministered = cdcSecondDoses,
+                    SecondDosesAdministered = cdcFullyVaccinated,
+                    FullyVaccinatedMinors = cdcFullyVaccinatedMinors,
                     DosesDistributed = cdcDosesDistributed,
+                    GlobalDosesAdministered = owidTotalVaccinations,
                     DateTimeAdded = DateTime.Now
                 });
 
@@ -85,6 +102,22 @@ namespace COVIDVaccinationCount
 
             // ROUTINES
 
+            // Checking if current execution started at 7 P.M. on Friday
+            if (executionTime.DayOfWeek == DayOfWeek.Friday && executionTime.ToString("t") == "7:00 PM")
+            {
+                // Instantiating Twitter class
+                Twitter twitter = new Twitter(
+                    Credentials.GetValue("Twitter_Consumer_Key"),
+                    Credentials.GetValue("Twitter_Consumer_Secret"),
+                    Credentials.GetValue("Twitter_Access_Key"),
+                    Credentials.GetValue("Twitter_Access_Secret")
+                );
+                // Tweeting chart with generated text
+                var generatedTweet = Twitter.GenerateMinorsTweet(cdcFullyVaccinatedMinors);
+                // Posting tweet
+                await twitter.Tweet(generatedTweet);
+            }
+
             // Checking if current execution started at 1 P.M. on Saturday
             if (executionTime.DayOfWeek == DayOfWeek.Saturday && executionTime.ToString("t") == "1:00 PM")
             {
@@ -95,9 +128,9 @@ namespace COVIDVaccinationCount
                 var chartImageBytes = Chart.GenerateTwoDatapointGraph(
                     chartType: "bar",
                     dateTimes: vaccinationRecords.Select(x => x.DateTimeAdded).ToList(),
-                    dataOne: vaccinationRecords.Select(x => x.FirstDosesAdministered).Cast<object>().ToList(),
+                    dataOne: vaccinationRecords.Select(x => x.FirstDosesAdministered).ToList(),
                     barTitleOne: "1st Doses Administered",
-                    dataTwo: vaccinationRecords.Select(x => x.SecondDosesAdministered).Cast<object>().ToList(),
+                    dataTwo: vaccinationRecords.Select(x => x.SecondDosesAdministered).ToList(),
                     barTitleTwo: "2nd Doses Administered"
                 );
 
@@ -123,7 +156,7 @@ namespace COVIDVaccinationCount
                 var chartImageBytes = Chart.GenerateOneDatapointGraph(
                     chartType: "line",
                     dateTimes: vaccinationRecords.Select(x => x.DateTimeAdded).ToList(),
-                    data: vaccinationRecords.Select(x => Calculations.CalculateImmunity(cdcUSPopulation, x.FirstDosesAdministered, x.SecondDosesAdministered)).Cast<object>().ToList(),
+                    data: vaccinationRecords.Select(x => Calculations.CalculateImmunity(cdcUSPopulation, x.FirstDosesAdministered, x.SecondDosesAdministered)).ToList(),
                     barTitle: "Immunity (% of U.S. population)"
                 );
 
@@ -135,7 +168,7 @@ namespace COVIDVaccinationCount
                     Credentials.GetValue("Twitter_Access_Secret")
                 );
                 // Tweeting chart with generated text
-                var generatedTweet = Twitter.GenerateImmunityChartTweet(latestDbVaccinationRecord.DateTimeAdded, Calculations.CalculateImmunity(cdcUSPopulation, cdcFirstDoses, cdcSecondDoses));
+                var generatedTweet = Twitter.GenerateImmunityChartTweet(latestDbVaccinationRecord.DateTimeAdded, Calculations.CalculateImmunity(cdcUSPopulation, cdcFirstDoses, cdcFullyVaccinated));
                 await twitter.TweetWithImage(generatedTweet, chartImageBytes);
             }
         }

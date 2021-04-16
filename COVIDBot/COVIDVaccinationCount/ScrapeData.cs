@@ -25,6 +25,13 @@ namespace COVIDVaccinationCount
             return new BloombergVaccinationData { Doses_Administered = dosesCount };
         }
 
+        public static OwidRegion[] Owid()
+        {
+            HtmlDocument siteHtml = RetrieveSiteHtml("https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/vaccinations.json");
+
+            return JsonConvert.DeserializeObject<OwidRegion[]>(siteHtml.Text);
+        }
+
         private static HtmlDocument RetrieveSiteHtml(string url)
         {
             var htmlDoc = new HtmlDocument();

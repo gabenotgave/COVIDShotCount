@@ -7,12 +7,12 @@ namespace COVIDVaccinationCount
 {
     static class Chart
     {
-        public static byte[] GenerateOneDatapointGraph(
+        public static byte[] GenerateOneDatapointGraph<T>(
             string chartType,
             List<DateTime> dateTimes,
-            List<object> data,
+            List<T> data,
             string barTitle
-            )
+            ) where T : IConvertible
         {
 
             // Converting lists to string
@@ -57,14 +57,14 @@ namespace COVIDVaccinationCount
             return chartImageBytes;
         }
 
-        public static byte[] GenerateTwoDatapointGraph(
+        public static byte[] GenerateTwoDatapointGraph<T>(
             string chartType,
             List<DateTime> dateTimes,
-            List<object> dataOne,
+            List<T> dataOne,
             string barTitleOne,
-            List<object> dataTwo,
+            List<T> dataTwo,
             string barTitleTwo
-            )
+            ) where T : IConvertible
         {
 
             // Converting lists to string

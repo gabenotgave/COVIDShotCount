@@ -71,16 +71,43 @@ namespace COVIDVaccinationCount
 We project herd immunity (70%) to be attained on {Calculations.ProjectHerdImmunity(percentage).ToString("M/d/yyyy")}.";
         }
 
+        public static string GenerateAdministrationByManufacturerTweet(int pfizer, int moderna, int janssen)
+        {
+            return $@"BY MANUFACTURER:
+
+Pfizer - {pfizer.IntToStrWithComma()} doses
+Moderna - {moderna.IntToStrWithComma()} doses
+J&J - {janssen.IntToStrWithComma()} doses";
+        }
+
+        public static string GenerateWorldTweet(int dosesAdministered, int peopleFullyVaccinated, int increase)
+        {
+            return @$"GLOBAL COVID-19 VACCINATIONS 🌎
+
+{dosesAdministered.IntToStrWithComma()} people vaccinated
+{peopleFullyVaccinated.IntToStrWithComma()} people fully vaccinated
++{increase.IntToStrWithComma()} since previous update
+
+(OWID, {DateTime.Now.ToString("M/d/yyyy")})";
+        }
+
         public static string GenerateCovidTweet(int distributed, int firstDoses, int secondDoses, int increase)
         {
             return @$"U.S. COVID-19 VACCINATIONS:
 
 {distributed.IntToStrWithComma()} doses distributed
-{firstDoses.IntToStrWithComma()} 1st doses administered
-{secondDoses.IntToStrWithComma()} 2nd doses administered
+{firstDoses.IntToStrWithComma()} first doses administered
+{secondDoses.IntToStrWithComma()} fully vaccinated people
 +{increase.IntToStrWithComma()} since previous update
 
 (CDC, {DateTime.Now.ToString("M/d/yyyy")})";
+        }
+
+        public static string GenerateMinorsTweet(int minorsFullyVaccinated)
+        {
+            return @$"{minorsFullyVaccinated.IntToStrWithComma()} children (age < 18) have been vaccinated against COVID-19 in the United States.
+
+This constitutes {Math.Round(minorsFullyVaccinated/56600000.0*100, 2)}% of K-12 pupils.";
         }
     }
 }
